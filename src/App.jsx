@@ -330,6 +330,10 @@ export default function App() {
 
         {/* ══ EXPLORE ══ */}
         {tab==="explore"&&<div style={{paddingTop:16}}>
+          <div style={{display:"flex",alignItems:"center",marginBottom:10,gap:8}}>
+            <span style={{fontSize:11,fontWeight:900,color:T.rose}}>📍 共 {locations.length} 個地點</span>
+            <span style={{fontSize:10,color:T.muted}}>· 收藏 {favorites.length} 個</span>
+          </div>
           <div style={{display:"flex",gap:7,marginBottom:12}}>
             <div style={{flex:1,position:"relative"}}>
               <Search size={13} style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",color:T.muted}}/>
