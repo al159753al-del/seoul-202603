@@ -601,7 +601,7 @@ const LocCard=({loc,isFav,inRoute,onToggleFav,onToggleRoute,onAddToDay,onAIInsig
         <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:3}}>
           <MapPin size={8} style={{color:T.muted,flexShrink:0}}/>
           <span style={{fontSize:9,color:T.muted,fontWeight:600}}>{loc.area}</span>
-          {loc.price&&<span style={{fontSize:8,color:T.gold,fontWeight:700,marginLeft:"auto"}}>{loc.price}</span>}
+          
           {loc.rating&&<span style={{fontSize:8,color:T.gold,fontWeight:700}}>★{loc.rating}</span>}
         </div>
         {loc.hours&&<div style={{fontSize:8,color:T.green,fontWeight:700,marginBottom:5,display:"flex",alignItems:"center",gap:3}}><Clock size={8}/>{loc.hours}</div>}
@@ -637,7 +637,7 @@ const FavCard=({loc,note,inRoute,onRemoveFav,onToggleRoute,onAddToDay,onAIInsigh
           <div style={{fontWeight:900,fontSize:12,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{loc.name}</div>
           <div style={{display:"flex",alignItems:"center",gap:5,marginTop:2}}>
             <span style={{fontSize:9,color:T.muted}}>{loc.area}</span>
-            {loc.price&&<span style={{fontSize:8,color:T.gold,fontWeight:700}}>{loc.price}</span>}
+            
             {loc.rating&&<span style={{fontSize:8,color:T.gold,fontWeight:700}}>★{loc.rating}</span>}
             {inRoute&&<span style={{fontSize:8,background:T.roseGlow,color:T.rose,fontWeight:800,padding:"1px 5px",borderRadius:5}}>路線中</span>}
           </div>
