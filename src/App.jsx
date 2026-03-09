@@ -128,6 +128,33 @@ const MapBtns = ({loc}) => {
 };
 
 // ══ Main App ═════════════════════════════════════════════════════════
+
+const RouteSearch = ({locations, route, toggleRoute}) => {
+  const [q, setQ] = React.useState("");
+  const filtered = q.trim()
+    ? locations.filter(l=>l.name.includes(q)||l.area.includes(q)||l.type.includes(q))
+    : locations;
+  return (
+    <>
+      <div style={{position:"relative",marginBottom:8}}>
+        <Search size={11} style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",color:"#A08080"}}/>
+        <input value={q} onChange={e=>setQ(e.target.value)} placeholder="搜尋地點加入路線…"
+          style={{width:"100%",boxSizing:"border-box",padding:"8px 10px 8px 28px",borderRadius:10,border:"1px solid #EDE0D8",background:"#FAF6F3",fontSize:10,outline:"none"}}/>
+      </div>
+      <div style={{maxHeight:320,overflowY:"auto",display:"flex",flexDirection:"column",gap:5}}>
+        {filtered.map(loc=>(
+          <div key={loc.id} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 11px",background:route.includes(loc.id)?"#F5E0E2":"#FFFFFF",borderRadius:11,border:`1px solid ${route.includes(loc.id)?"#C85C68":"#EDE0D8"}`}}>
+            <span style={{fontSize:13}}>{EMOJI[loc.type]}</span>
+            <div style={{flex:1,minWidth:0}}><div style={{fontWeight:800,fontSize:11,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{loc.name}</div><div style={{fontSize:9,color:"#A08080"}}>{loc.area}</div></div>
+            <button onClick={()=>toggleRoute(loc.id)} style={{padding:"5px 11px",borderRadius:9,border:"none",fontWeight:800,fontSize:9,cursor:"pointer",background:route.includes(loc.id)?"#C85C68":"#FAF6F3",color:route.includes(loc.id)?"#fff":"#A08080",flexShrink:0}}>{route.includes(loc.id)?"✓":"＋"}</button>
+          </div>
+        ))}
+        {filtered.length===0&&<div style={{textAlign:"center",padding:16,color:"#A08080",fontSize:10}}>找不到符合的地點</div>}
+      </div>
+    </>
+  );
+};
+
 export default function App() {
   const [binId,   setBinId]   = useState(()=>getBinId());
   const [ready,   setReady]   = useState(false);
@@ -242,7 +269,7 @@ export default function App() {
 
   // AI
   const openInsight = async(loc)=>{setAiInsight({show:true,title:loc.name,content:"",loading:true});try{const r=await callAI([{role:"user",content:`請用3段介紹首爾「${loc.name}」（${loc.area}，${loc.type}）。① 2026年必去理由 ② 最推薦品項/體驗 ③ 實用提示（交通/時間/注意）`}]);setAiInsight(p=>({...p,content:r,loading:false}));}catch{setAiInsight(p=>({...p,content:"連線錯誤，請稍後再試。",loading:false}));}};
-  const genRoute    = async()=>{if(routeLocs.length<2){notify("請至少加入2個路線點");return;}setRouteAI({show:true,content:"",loading:true});const names=routeLocs.map((l,i)=>`${i+1}. ${l.name}（${l.area}）`).join("\n");try{const r=await callAI([{role:"user",content:`我想按順序遊覽首爾：\n${names}\n\n請給：① 最佳交通方式 ② 各段時間預估 ③ 順序優化建議 ④ 沿途可順道的景點`}]);setRouteAI({show:true,content:r,loading:false});}catch{setRouteAI({show:true,content:"連線錯誤，請稍後再試。",loading:false});}};
+  const genRoute    = async()=>{if(routeLocs.length<2){notify("請至少加入2個路線點");return;}setRouteAI({show:true,content:"",loading:true});const names=routeLocs.map((l,i)=>`${i+1}. ${l.name}（${l.area}）`).join("\n");try{const r=await callAI([{role:"user",content:`我想遊覽首爾這些地點：\n${names}\n\n請幫我：① 依地理位置重新排列最省路的順序 ② 說明各地點間的交通方式和距離 ③ 預估各段所需時間 ④ 推薦附近可以順路加入的景點`}]);setRouteAI({show:true,content:r,loading:false});}catch{setRouteAI({show:true,content:"連線錯誤，請稍後再試。",loading:false});}};
   const handleChat  = async(override)=>{const msg=override||chatInput.trim();if(!msg||chatLoading)return;const u={role:"user",content:msg};setChatMsgs(p=>[...p,u]);setChatInput("");setChatLoading(true);try{const r=await callAI([...chatMsgs,u]);setChatMsgs(p=>[...p,{role:"assistant",content:r}]);}catch{setChatMsgs(p=>[...p,{role:"assistant",content:"連線錯誤，請稍後再試。"}]);}setChatLoading(false);};
 
   if(!ready) return(
@@ -492,7 +519,10 @@ export default function App() {
 
         {/* ══ ROUTE ══ */}
         {tab==="route"&&<div style={{paddingTop:16}}>
-          <SHdr icon={<Route size={15}/>} title="路線規劃" sub={`${routeLocs.length} 個點`}/>
+          <div style={{display:"flex",alignItems:"center",marginBottom:10,gap:8}}>
+            <span style={{fontSize:11,fontWeight:900,color:T.rose}}>🗺 共 {locations.length} 個地點</span>
+            <span style={{fontSize:10,color:T.muted}}>· 路線 {routeLocs.length} 個</span>
+          </div>
           <div style={{background:T.card,borderRadius:18,padding:16,marginBottom:12,border:`1px solid ${T.border}`}}>
             {routeLocs.length===0
               ?<Empty icon="🗺" text="從下方加入路線點"/>
@@ -517,23 +547,17 @@ export default function App() {
                   ))}
                 </div>
                 <div style={{display:"flex",gap:7}}>
-                  <button onClick={genRoute} style={{flex:1,padding:"11px",background:T.roseDeep,color:T.rose,border:`1px solid ${T.rose}`,borderRadius:12,fontWeight:800,fontSize:11,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:5}}><Sparkles size={12}/> AI 分析</button>
+                  <button onClick={genRoute} style={{flex:1,padding:"11px",background:T.roseDeep,color:T.rose,border:`1px solid ${T.rose}`,borderRadius:12,fontWeight:800,fontSize:11,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:5}}><Sparkles size={12}/> AI 最佳路線</button>
                   <button onClick={()=>window.open(`https://map.naver.com/v5/search/${encodeURIComponent(routeLocs[0]?.name||"")}`, "_blank")} style={{flex:1,padding:"11px",background:"#03C75A",color:"#fff",border:"none",borderRadius:12,fontWeight:800,fontSize:11,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:5}}><Navigation size={12}/> Naver</button>
                 </div>
               </>
             }
           </div>
           <div style={{background:T.card,borderRadius:16,padding:12,border:`1px solid ${T.border}`}}>
-            <div style={{fontSize:9,fontWeight:900,color:T.muted,marginBottom:10,letterSpacing:1.5}}>＋ 加入路線點</div>
-            <div style={{maxHeight:360,overflowY:"auto",display:"flex",flexDirection:"column",gap:5}}>
-              {locations.map(loc=>(
-                <div key={loc.id} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 11px",background:route.includes(loc.id)?T.roseDeep:T.surface,borderRadius:11,border:`1px solid ${route.includes(loc.id)?T.rose:T.border}`}}>
-                  <span style={{fontSize:13}}>{EMOJI[loc.type]}</span>
-                  <div style={{flex:1,minWidth:0}}><div style={{fontWeight:800,fontSize:11,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{loc.name}</div><div style={{fontSize:9,color:T.muted}}>{loc.area}</div></div>
-                  <button onClick={()=>toggleRoute(loc.id)} style={{padding:"5px 11px",borderRadius:9,border:"none",fontWeight:800,fontSize:9,cursor:"pointer",background:route.includes(loc.id)?T.rose:T.card,color:route.includes(loc.id)?"#fff":T.muted,flexShrink:0}}>{route.includes(loc.id)?"✓":"＋"}</button>
-                </div>
-              ))}
+            <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:10}}>
+              <div style={{fontSize:9,fontWeight:900,color:T.muted,letterSpacing:1.5,flex:1}}>＋ 加入路線點</div>
             </div>
+            <RouteSearch locations={locations} route={route} toggleRoute={toggleRoute}/>
           </div>
         </div>}
 
