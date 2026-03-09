@@ -16,7 +16,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
+        max_tokens: 4096,
         system: system || '你是首爾旅遊達人，熟悉2026年最新首爾潮流、美食、購物與景點。用繁體中文回答，語氣友善，回答精簡有實用建議。',
         messages,
       }),
