@@ -130,7 +130,7 @@ const MapBtns = ({loc}) => {
 // ══ Main App ═════════════════════════════════════════════════════════
 
 const RouteSearch = ({locations, route, toggleRoute}) => {
-  const [q, setQ] = React.useState("");
+  const [q, setQ] = useState("");
   const filtered = q.trim()
     ? locations.filter(l=>l.name.includes(q)||l.area.includes(q)||l.type.includes(q))
     : locations;
