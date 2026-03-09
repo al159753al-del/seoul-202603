@@ -727,7 +727,7 @@ const ImportModal=({onImport})=>{
     try{
       const raw=await callAI([{role:"user",content:`請解析這些店家：\n${text}`}],`你是資料解析助手。把使用者提供的店家清單解析成 JSON 陣列。每個店家輸出：{"name":string,"area":string,"type":string,"desc":string,"priceLevel":string,"rating":number|null,"hours":string}。area 只能是：聖水洞、弘大、明洞、漢南洞、安國、廣藏市場、島山/江南、梨泰院、鐘路、其他。type 只能是：咖啡廳、酒吧、景點、逛街、鞋子、美妝生活、餐廳、其他。priceLevel 只能是 ₩ ₩₩ ₩₩₩ ₩₩₩₩。desc 用繁體中文寫1句簡短介紹。hours 有就填，否則空字串。只輸出純 JSON 陣列，不要說明或 markdown。`);
       setParsed(JSON.parse(raw.replace(/```json|```/g,"").trim()));
-    }catch{setErr("解析失敗，請確認格式後重試");}
+    }catch(e){setErr("解析失敗："+e.message);console.error("AI parse error",e);}
     setLoading(false);
   };
   return(<><MHdr icon="✨" title="AI 批量匯入" sub="貼上任何格式，AI 自動解析"/>
