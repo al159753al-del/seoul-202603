@@ -13,13 +13,13 @@ const API_BASE   = "https://api.jsonbin.io/v3";
 
 // ══ Design Tokens ════════════════════════════════════════════════════
 const T = {
-  bg:"#0D0909", surface:"#161010", card:"#1E1414", border:"#2E1E1E",
-  rose:"#D4737E", roseDark:"#A8545E", roseDeep:"#6A3038",
-  roseGlow:"rgba(212,115,126,0.14)", roseFaint:"rgba(212,115,126,0.07)",
-  text:"#F0E6E2", textSoft:"#C4A8A0", muted:"#7A6060",
-  gold:"#C49A6C", goldFaint:"rgba(196,154,108,0.1)",
-  green:"#5BA882", blue:"#6B9AC4", shadow:"rgba(0,0,0,0.7)",
-  glow:"rgba(212,115,126,0.3)",
+  bg:"#FAF6F3", surface:"#FFFFFF", card:"#FFFFFF", border:"#EDE0D8",
+  rose:"#C85C68", roseDark:"#A8454F", roseDeep:"#F5E0E2",
+  roseGlow:"rgba(200,92,104,0.10)", roseFaint:"rgba(200,92,104,0.05)",
+  text:"#2D1F1F", textSoft:"#6B4C4C", muted:"#A08080",
+  gold:"#B07D3A", goldFaint:"rgba(176,125,58,0.08)",
+  green:"#3A7A5C", blue:"#4A7FA8", shadow:"rgba(180,120,120,0.15)",
+  glow:"rgba(200,92,104,0.2)",
 };
 
 const CATEGORIES   = ["咖啡廳","酒吧","景點","逛街","鞋子","美妝生活","餐廳","其他"];
@@ -534,35 +534,7 @@ export default function App() {
         </div>}
 
         {/* ══ MAP ══ */}
-        {tab==="map"&&<div style={{paddingTop:16}}>
-          <SHdr icon={<Map size={15}/>} title="地圖 & 導航" sub="定位 · 附近收藏"/>
-          <div style={{background:T.card,borderRadius:18,padding:18,marginBottom:12,border:`1px solid ${T.border}`,textAlign:"center"}}>
-            <button onClick={()=>{setIsLocating(true);navigator.geolocation.getCurrentPosition(pos=>{setUserCoords({lat:pos.coords.latitude,lng:pos.coords.longitude});setIsLocating(false);notify("📍 定位成功！");},()=>{notify("定位失敗，請允許位置存取");setIsLocating(false);},{enableHighAccuracy:true});}} disabled={isLocating}
-              style={{display:"inline-flex",alignItems:"center",gap:7,background:isLocating?T.muted:T.rose,color:"#fff",border:"none",borderRadius:14,padding:"11px 26px",fontWeight:900,fontSize:12,cursor:"pointer"}}>
-              {isLocating?<Loader2 size={15} style={{animation:"spin 1s linear infinite"}}/>:<LocateFixed size={15}/>}
-              {isLocating?"定位中…":"定位我的位置"}
-            </button>
-            {userCoords&&<div style={{marginTop:7,fontSize:10,color:T.muted}}>📍 {userCoords.lat.toFixed(4)}, {userCoords.lng.toFixed(4)}</div>}
-          </div>
-          {userCoords&&nearbyFavs.length>0&&<div style={{marginBottom:14}}>
-            <div style={{fontWeight:900,fontSize:12,color:T.rose,marginBottom:8}}>📍 附近收藏（由近到遠）</div>
-            {nearbyFavs.map(loc=>(
-              <div key={loc.id} style={{background:T.card,borderRadius:13,padding:"10px 12px",marginBottom:6,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",gap:9}}>
-                <div style={{background:T.roseDeep,borderRadius:9,padding:"5px 9px",textAlign:"center",minWidth:44}}><div style={{fontWeight:900,fontSize:11,color:T.rose}}>{loc.dist.toFixed(1)}</div><div style={{fontSize:7,color:T.muted}}>km</div></div>
-                <div style={{flex:1}}><div style={{fontWeight:800,fontSize:11}}>{loc.name}</div><div style={{fontSize:9,color:T.muted}}>{loc.area}</div></div>
-                <MapBtns loc={loc}/>
-              </div>
-            ))}
-          </div>}
-          <div style={{fontWeight:900,fontSize:12,color:T.rose,marginBottom:8}}>🗺 所有地點</div>
-          {locations.map(loc=>(
-            <div key={loc.id} style={{background:T.card,borderRadius:12,padding:"9px 12px",marginBottom:5,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",gap:8}}>
-              <span style={{fontSize:14}}>{EMOJI[loc.type]}</span>
-              <div style={{flex:1,minWidth:0}}><div style={{fontWeight:800,fontSize:11}}>{loc.name}</div><div style={{fontSize:9,color:T.muted}}>{loc.area}</div></div>
-              <MapBtns loc={loc}/>
-            </div>
-          ))}
-        </div>}
+        {tab==="map"&&<MapTab userCoords={userCoords} isLocating={isLocating} setIsLocating={setIsLocating} setUserCoords={setUserCoords} nearbyFavs={nearbyFavs} locations={locations} favorites={favorites} notify={notify} onImport={(locs)=>{const u=[...locations,...locs.map((l,i)=>({...l,id:Date.now()+i,mapsId:""}))];setLocations(u);save({locations:u});notify(`✅ 已匯入 ${locs.length} 個地點！`);}}/>}
 
         {/* ══ CHAT ══ */}
         {tab==="chat"&&<div style={{paddingTop:16,display:"flex",flexDirection:"column",height:"calc(100vh - 196px)"}}>
@@ -571,7 +543,7 @@ export default function App() {
             {chatMsgs.map((msg,i)=>(
               <div key={i} style={{display:"flex",justifyContent:msg.role==="user"?"flex-end":"flex-start",alignItems:"flex-end",gap:7}}>
                 {msg.role==="assistant"&&<div style={{width:26,height:26,borderRadius:"50%",background:`linear-gradient(135deg,${T.rose},${T.roseDeep})`,color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,flexShrink:0}}>✨</div>}
-                <div style={{maxWidth:"78%",padding:"9px 13px",borderRadius:msg.role==="user"?"16px 16px 3px 16px":"16px 16px 16px 3px",background:msg.role==="user"?T.roseDeep:T.card,color:T.text,fontSize:12,lineHeight:1.8,border:msg.role==="assistant"?`1px solid ${T.border}`:"none",whiteSpace:"pre-wrap"}}>{msg.content}</div>
+                <div style={{maxWidth:"78%",padding:"9px 13px",borderRadius:msg.role==="user"?"16px 16px 3px 16px":"16px 16px 16px 3px",background:msg.role==="user"?T.rose:T.card,color:msg.role==="user"?"#fff":T.text,fontSize:12,lineHeight:1.8,border:msg.role==="assistant"?`1px solid ${T.border}`:"none",whiteSpace:"pre-wrap"}}>{msg.content}</div>
               </div>
             ))}
             {chatLoading&&<div style={{display:"flex",gap:7}}><div style={{width:26,height:26,borderRadius:"50%",background:`linear-gradient(135deg,${T.rose},${T.roseDeep})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12}}>✨</div><div style={{background:T.card,padding:"10px 14px",borderRadius:"16px 16px 16px 3px",border:`1px solid ${T.border}`}}><Loader2 size={13} style={{color:T.rose,animation:"spin 1s linear infinite"}}/></div></div>}
@@ -602,7 +574,7 @@ export default function App() {
         ))}
       </nav>
 
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}} *{-webkit-tap-highlight-color:transparent;} ::-webkit-scrollbar{width:2px;height:2px;} ::-webkit-scrollbar-thumb{background:${T.border};border-radius:2px;} input[type=time]::-webkit-calendar-picker-indicator{filter:invert(0.5);cursor:pointer;}`}</style>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}} *{-webkit-tap-highlight-color:transparent;} body{background:#FAF6F3;} ::-webkit-scrollbar{width:3px;height:3px;} ::-webkit-scrollbar-thumb{background:#E8D0C8;border-radius:3px;} input[type=time]::-webkit-calendar-picker-indicator{filter:none;cursor:pointer;}`}</style>
     </div>
   );
 }
@@ -792,4 +764,190 @@ const ImportModal=({onImport})=>{
       </div>
     </>)}
   </>);
+};
+
+// ══ MapTab ═══════════════════════════════════════════════════════════
+const EmbedMap = ({mapType, userCoords, favLocs, selectedLoc, onSelectLoc}) => {
+  const center = selectedLoc || userCoords || {lat:37.5410, lng:127.0555};
+
+  // Custom SVG map overlay using canvas-style rendering over an iframe
+  // We show interactive markers list alongside the iframe
+  const naverUrl = `https://map.naver.com/v5/?c=${center.lng},${center.lat},15,0,0,0,dh${selectedLoc?`&pinType=place&pinId=`:''}`;
+  const googleUrl = `https://www.google.com/maps/embed/v1/view?key=AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY&center=${center.lat},${center.lng}&zoom=15&maptype=roadmap`;
+  // Use a free embed approach for Google without API key
+  const googleEmbedUrl = `https://maps.google.com/maps?q=${center.lat},${center.lng}&z=15&output=embed&hl=zh-TW`;
+
+  return (
+    <div style={{borderRadius:16,overflow:"hidden",border:`1px solid ${T.border}`,marginBottom:8,background:T.surface}}>
+      {/* Map iframe */}
+      <div style={{position:"relative",height:300}}>
+        <iframe
+          key={`${mapType}-${center.lat}-${center.lng}`}
+          src={mapType==="naver" ? naverUrl : googleEmbedUrl}
+          width="100%" height="300"
+          style={{border:"none",display:"block"}}
+          title={mapType==="naver"?"Naver Map":"Google Map"}
+          allow="geolocation"
+          loading="lazy"
+        />
+        {/* Overlay: marker count badge */}
+        <div style={{position:"absolute",top:8,right:8,background:"rgba(255,255,255,0.95)",backdropFilter:"blur(8px)",borderRadius:10,padding:"5px 10px",fontSize:9,fontWeight:900,color:T.rose,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",gap:4}}>
+          <Heart size={9} fill={T.rose} color={T.rose}/> {favLocs.length} 個收藏
+        </div>
+        {userCoords&&<div style={{position:"absolute",top:8,left:8,background:"rgba(255,255,255,0.95)",backdropFilter:"blur(8px)",borderRadius:10,padding:"5px 10px",fontSize:9,fontWeight:700,color:T.blue,border:`1px solid ${T.border}`}}>
+          📍 已定位
+        </div>}
+      </div>
+
+      {/* Scrollable marker chips below map */}
+      {favLocs.length>0&&<div style={{padding:"8px 10px",display:"flex",gap:5,overflowX:"auto",borderTop:`1px solid ${T.border}`}}>
+        {favLocs.map((loc,i)=>(
+          <button key={loc.id} onClick={()=>{
+            onSelectLoc(loc);
+            const nav = mapType==="naver"
+              ? `https://map.naver.com/v5/search/${encodeURIComponent(loc.name)}`
+              : (loc.mapsId ? `https://www.google.com/maps/place/?q=place_id:${loc.mapsId}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc.name+" 首爾")}`);
+            window.open(nav,"_blank");
+          }}
+            style={{display:"inline-flex",alignItems:"center",gap:4,background:selectedLoc?.id===loc.id?T.rose:T.bg,color:selectedLoc?.id===loc.id?"#fff":T.text,border:`1px solid ${selectedLoc?.id===loc.id?T.rose:T.border}`,borderRadius:18,padding:"5px 10px",fontSize:9,fontWeight:800,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0}}>
+            <span>{i+1}</span>
+            <span>{EMOJI[loc.type]}</span>
+            <span>{loc.name}</span>
+          </button>
+        ))}
+      </div>}
+    </div>
+  );
+};
+
+const MapTab = ({userCoords, isLocating, setIsLocating, setUserCoords, nearbyFavs, locations, favorites, notify, onImport}) => {
+  const [mapType,      setMapType]      = useState("naver");
+  const [selectedLoc,  setSelectedLoc]  = useState(null);
+  const [importUrl,    setImportUrl]    = useState("");
+  const [importing,    setImporting]    = useState(false);
+  const [importResult, setImportResult] = useState(null);
+  const favLocs = locations.filter(l => favorites.includes(l.id));
+
+  const locateMe = () => {
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      pos => { setUserCoords({lat:pos.coords.latitude, lng:pos.coords.longitude}); setIsLocating(false); notify("📍 定位成功！"); },
+      () => { notify("定位失敗，請允許位置存取"); setIsLocating(false); },
+      {enableHighAccuracy:true}
+    );
+  };
+
+  const openNav = (loc) => {
+    const url = mapType==="naver"
+      ? `https://map.naver.com/v5/search/${encodeURIComponent(loc.name)}`
+      : (loc.mapsId ? `https://www.google.com/maps/place/?q=place_id:${loc.mapsId}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc.name+" 首爾")}`);
+    window.open(url,"_blank");
+  };
+
+  const importFromUrl = async () => {
+    if(!importUrl.trim()) return;
+    setImporting(true); setImportResult(null);
+    try {
+      const raw = await callAI(
+        [{role:"user", content:`這是一個地圖網址或店家名稱：\n${importUrl}\n\n請根據你的知識解析這個首爾店家資訊。`}],
+        `你是首爾店家資料解析助手。輸出純 JSON（無 markdown）：{"name":string,"area":string,"type":string,"desc":string,"priceLevel":string,"rating":number|null,"hours":string,"lat":number,"lng":number}。area 只能是：聖水洞、弘大、明洞、漢南洞、安國、廣藏市場、島山/江南、梨泰院、鐘路、其他。type 只能是：咖啡廳、酒吧、景點、逛街、鞋子、美妝生活、餐廳、其他。priceLevel 只能是 ₩ ₩₩ ₩₩₩ ₩₩₩₩。lat/lng 填首爾的準確座標。`
+      );
+      const parsed = JSON.parse(raw.replace(/```json|```/g,"").trim());
+      setImportResult(parsed);
+    } catch { notify("⚠️ 解析失敗，請試試直接貼店家名稱"); }
+    setImporting(false);
+  };
+
+  return (
+    <div style={{paddingTop:16}}>
+      <SHdr icon={<Map size={15}/>} title="地圖 & 導航" sub="定位 · 收藏標記 · 匯入店家"/>
+
+      {/* Map type toggle + locate */}
+      <div style={{display:"flex",gap:7,marginBottom:10,alignItems:"center"}}>
+        <div style={{display:"flex",background:T.card,borderRadius:12,border:`1px solid ${T.border}`,overflow:"hidden",flexShrink:0}}>
+          {[{id:"naver",label:"Naver",color:"#03C75A"},{id:"google",label:"Google",color:"#4285F4"}].map(m=>(
+            <button key={m.id} onClick={()=>setMapType(m.id)}
+              style={{padding:"8px 14px",border:"none",fontWeight:900,fontSize:11,cursor:"pointer",
+                background:mapType===m.id?m.color:"transparent",
+                color:mapType===m.id?"#fff":T.muted,transition:"all 0.15s"}}>
+              {m.label}
+            </button>
+          ))}
+        </div>
+        <button onClick={locateMe} disabled={isLocating}
+          style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:6,background:userCoords?T.green:T.rose,color:"#fff",border:"none",borderRadius:12,padding:"9px 14px",fontWeight:900,fontSize:11,cursor:"pointer"}}>
+          {isLocating?<Loader2 size={13} style={{animation:"spin 1s linear infinite"}}/>:<LocateFixed size={13}/>}
+          {isLocating?"定位中…":userCoords?"重新定位":"定位我的位置"}
+        </button>
+      </div>
+
+      {/* Embedded map */}
+      <EmbedMap mapType={mapType} userCoords={userCoords} favLocs={favLocs} selectedLoc={selectedLoc} onSelectLoc={setSelectedLoc}/>
+
+      {/* Import box */}
+      <div style={{background:T.card,borderRadius:16,padding:14,marginBottom:12,border:`1px solid ${T.border}`}}>
+        <div style={{fontWeight:900,fontSize:12,color:T.text,marginBottom:3}}>📥 匯入店家</div>
+        <div style={{fontSize:10,color:T.muted,marginBottom:9}}>貼 Naver / Google Maps 網址，或直接輸入店名，AI 自動解析</div>
+        <div style={{display:"flex",gap:7,marginBottom:8}}>
+          <input value={importUrl} onChange={e=>setImportUrl(e.target.value)} onKeyDown={e=>e.key==="Enter"&&importFromUrl()}
+            placeholder="naver.me/... · maps.app.goo.gl/... · 或店家名稱"
+            style={{...INP,flex:1,fontSize:11}}/>
+          <button onClick={importFromUrl} disabled={importing}
+            style={{padding:"10px 14px",background:T.rose,color:"#fff",border:"none",borderRadius:11,fontWeight:900,fontSize:11,cursor:"pointer",flexShrink:0,display:"flex",alignItems:"center",gap:5}}>
+            {importing?<Loader2 size={12} style={{animation:"spin 1s linear infinite"}}/>:<Sparkles size={12}/>}
+            {importing?"解析中":"解析"}
+          </button>
+        </div>
+
+        {importResult&&(
+          <div style={{background:T.bg,borderRadius:12,padding:12,border:`1px solid ${T.border}`}}>
+            <div style={{display:"flex",gap:9,marginBottom:10}}>
+              <span style={{fontSize:22,flexShrink:0}}>{EMOJI[importResult.type]||"📍"}</span>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:900,fontSize:13}}>{importResult.name}</div>
+                <div style={{fontSize:10,color:T.muted,marginTop:2}}>{importResult.area} · {importResult.type} · {importResult.priceLevel}{importResult.rating?` · ★${importResult.rating}`:""}</div>
+                {importResult.desc&&<div style={{fontSize:10,color:T.textSoft,marginTop:4,lineHeight:1.5}}>{importResult.desc}</div>}
+                {importResult.hours&&<div style={{fontSize:9,color:T.green,marginTop:3,fontWeight:700}}>🕐 {importResult.hours}</div>}
+              </div>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7}}>
+              <button onClick={()=>{setImportResult(null);setImportUrl("");}}
+                style={{padding:"9px",background:T.surface,color:T.muted,border:`1px solid ${T.border}`,borderRadius:10,fontWeight:800,fontSize:11,cursor:"pointer"}}>取消</button>
+              <button onClick={()=>{onImport([importResult]);setImportResult(null);setImportUrl("");}}
+                style={{padding:"9px",background:T.rose,color:"#fff",border:"none",borderRadius:10,fontWeight:900,fontSize:11,cursor:"pointer"}}>✅ 加入清單</button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Nearby favs */}
+      {userCoords&&nearbyFavs.length>0&&<div style={{marginBottom:14}}>
+        <div style={{fontWeight:900,fontSize:12,color:T.rose,marginBottom:8}}>📍 附近收藏（由近到遠）</div>
+        {nearbyFavs.map(loc=>(
+          <div key={loc.id} onClick={()=>openNav(loc)}
+            style={{background:T.card,borderRadius:13,padding:"10px 12px",marginBottom:6,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",gap:9,cursor:"pointer"}}>
+            <div style={{background:T.roseDeep,borderRadius:9,padding:"5px 9px",textAlign:"center",minWidth:44,flexShrink:0}}>
+              <div style={{fontWeight:900,fontSize:11,color:T.rose}}>{loc.dist.toFixed(1)}</div>
+              <div style={{fontSize:7,color:T.muted}}>km</div>
+            </div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontWeight:800,fontSize:11}}>{loc.name}</div>
+              <div style={{fontSize:9,color:T.muted}}>{loc.area} · {EMOJI[loc.type]}</div>
+            </div>
+            <Navigation size={13} style={{color:T.rose,flexShrink:0}}/>
+          </div>
+        ))}
+      </div>}
+
+      {/* All locations */}
+      <div style={{fontWeight:900,fontSize:12,color:T.rose,marginBottom:8}}>🗺 所有地點</div>
+      {locations.map(loc=>(
+        <div key={loc.id} style={{background:T.card,borderRadius:12,padding:"9px 12px",marginBottom:5,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",gap:8}}>
+          <span style={{fontSize:14}}>{EMOJI[loc.type]}</span>
+          <div style={{flex:1,minWidth:0}}><div style={{fontWeight:800,fontSize:11}}>{loc.name}</div><div style={{fontSize:9,color:T.muted}}>{loc.area}</div></div>
+          <MapBtns loc={loc}/>
+        </div>
+      ))}
+    </div>
+  );
 };
